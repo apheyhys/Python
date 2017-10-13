@@ -49,23 +49,22 @@ def welcome(title):
 
 
 def record_tabble(finally_nominal, players_name):
-    scores = []
     print("\n\t\tТаблица рекордов:\n")
     f = open("textfiles/trivia_record.dat", "ab")
     name_record = (finally_nominal, players_name)
-    scores.append(name_record)
-    pickle.dump(scores, f)
+    pickle.dump(name_record, f)
     f.close()
     f = open("textfiles/trivia_record.dat", "rb")
-    scores = pickle.load(f)
-    scores2 = None
-    scores3 = None
-    if scores2 != "":
-        scores2 = pickle.load(f)
-    if scores3 != "":
-        scores3 = pickle.load(f)
-    scores3.sort()
-    print("\t",scores,"\n", "\t", scores2,"\n", "\t", scores3)
+    scores = []
+    while f:
+        try:
+            scores.append(pickle.load(f))
+        except:
+            break
+    scores.sort(reverse=True)
+    scores = scores[:5]
+    for x in scores:
+        print("\t", x[1], "-", x[0])
     f.close()
 
 def main():
