@@ -2,7 +2,6 @@
 # Игра на выбор правильного варианта ответа.
 # вопросы которой читаются из текстового файла
 import sys
-import pickle
 
 
 def open_file(file_name, mode):
@@ -52,21 +51,14 @@ def welcome(title):
 def record_tabble(finally_nominal, players_name):
     """Возвращает таблицу с рекордами"""
     print("\n\t\tТаблица рекордов:\n")
-    f = open("textfiles/trivia_record.dat", "ab")
-    name_record = (finally_nominal, players_name)
-    pickle.dump(name_record, f)
+    f = open("textfiles/trivia_record.txt", "a", encoding='utf-8')
+
+    name_record = (players_name, "-", str(finally_nominal), "\n")
+    f.writelines(name_record)
     f.close()
-    f = open("textfiles/trivia_record.dat", "rb")
-    scores = []
-    while f:
-        try:
-            scores.append(pickle.load(f))
-        except:
-            break
-    scores.sort(reverse=True)
-    scores = scores[:5]
-    for x in scores:
-        print("\t", x[1], "-", x[0])
+    with open("textfiles/trivia_record.txt", "r", encoding='utf-8') as f:
+        for i in f:
+            print(i)
     f.close()
 
 
