@@ -6,7 +6,7 @@ class Card(object):
     SUITS = ["c", "d", "h", "s"]
 
     def __init__(self, rank, suit, face_up=True):
-        self.rank =rank
+        self.rank = rank
         self.suit = suit
         self.is_face_up = face_up
 
@@ -49,6 +49,7 @@ class Hand(object):
 
 class Deck(Hand):
     """Колода игральных карт."""
+
     def populate(self):
         self.cards = []
         for suit in Card.SUITS:
@@ -67,6 +68,9 @@ class Deck(Hand):
                     self.give(top_card, hand)
                 else:
                     print("Не могу больше сдавать - карты закончились!")
+                    self.cards = []
+                    self.populate()
+                    self.shuffle()
 
 if __name__ == "__main__":
     print("Это модуль, содержащий классы для карточных игр.")
