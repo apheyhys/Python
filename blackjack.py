@@ -33,6 +33,8 @@ class BJ_Hand(cards.Hand):
     def __init__(self, name):
         super(BJ_Hand, self).__init__()
         self.name = name
+        score = 100 # в начале игры каждому игроку дается по 100 баллов
+        self.score = score
 
     def __str__(self):
         rep = self.name + ":\t" + super(BJ_Hand, self).__str__()
@@ -40,9 +42,22 @@ class BJ_Hand(cards.Hand):
             rep += "(" + str(self.total) + ")"
         return rep
 
+    def big_question(self): # если на счету игрока 0 баллов, то возвращаем 0
+        if self.score == 0:
+            print("На счету игрока", self.name, "закончились деньги")
+            answer = 0
+            self.answer = answer
+            return self.answer
+
+    def question_rate(self): # спрашиваем ставку каждого игрока в новой игре
+        print("В банке игрока", self.name, "-", self.score, "баллов")
+        grate = games.ask_number("Введите вашу ставку: ", low=1, high=self.score + 1)
+        self.grate = grate
+        return self.grate
+
     @property
     def total(self):
-        # если у одно из карт value равно None, то и все свойство равно None
+        # если у одной из карт value равно None, то и все свойство равно None
         for card in self.cards:
             if not card.value:
                 return None
@@ -78,15 +93,17 @@ class BJ_Player(BJ_Hand):
 
     def lose(self):
         print(self.name, "проиграл.")
+        self.score -= self.grate # если проиграл, то отнимаем баллы
+        print("На счету игрока", self.name, "-", self.score, "баллов\n")
 
     def win(self):
         print(self.name, "выиграл.")
+        self.score += self.grate # если выиграл, то прибавляем
+        print("На счету игрока", self.name, "-", self.score, "баллов\n")
 
     def push(self):
-        print(self.name, "сыграл с компьютером вничью.")
-
-    def name_players(self):
-        return self.name
+        print(self.name, "сыграл с компьютером вничью.") # при ничьей отставляем банк игрока неизменным
+        print("На счету игрока", self.name, "-", self.score, "баллов\n")
 
 
 
@@ -103,48 +120,13 @@ class BJ_Dealer(BJ_Hand):
         first_card = self.cards[0]
         first_card.flip()
 
-class BJ_Bank():
-    def __init__(self, rate_for_player, name):
-        self.name = name
-        self.rate_for_player = rate_for_player
-
-    def __str__(self):
-        rep = ""
-        return rep
-
-    def question_rate(self):
-        print("В банке игрока", self.name, "-", self.rate_for_player, "баллов")
-        if self.rate_for_player == 0:
-            print("На счету игрока", self.name, "закончились деньги")
-        else:
-            testss = games.ask_number("Введите вашу ставку: ", low=1, high=self.rate_for_player+1)
-            self.rate = testss
-            return self.rate
-
-    def change_rate_win(self):
-        self.rate_for_player += self.rate
-        print("На счету игрока", self.name, "-", self.rate_for_player, "баллов")
-
-    def change_rate_lose(self):
-        self.rate_for_player -= self.rate
-        print(self.rate_for_player)
-        print("На счету игрока", self.name, "-", self.rate_for_player, "баллов")
-
-    def change_rate_push(self):
-        print("Каждый остался при своих")
-        print("На счету игрока", self.name, "-", self.rate_for_player, "баллов")
-
-
 class BJ_Game(object):
     """Игра в Блек-джек."""
 
     def __init__(self, names):
         self.players = []
-        self.banks = []
         for name in names:
             player = BJ_Player(name)
-            self.bank = BJ_Bank(100, name)
-            print(self.bank)
             self.players.append(player)
         self.dealer = BJ_Dealer("Dealer")
         self.deck = BJ_Deck()
@@ -165,50 +147,46 @@ class BJ_Game(object):
             print(player)
             if player.is_busted():
                 player.bust()
-                self.bank.change_rate_lose()
 
     def play(self):
         # сдача всем по 2 карты
         self.deck.deal(self.players + [self.dealer], per_hand=2)
         self.dealer.flip_first_card() # первая из карт, сданных дилеру, переворачивается рубашкой вверх
-        #bank.questionss()
-        print(self.banks)
-        #self.bank.question_rate()
-
+        self.temporary_rate = []
         for player in self.players:
-            self.banks.append(self.bank.question_rate())
-            print(player)
-        print(self.banks)
-        print(self.dealer)
-        # сдача дополнительных карт игрокам
-        for player in self.players:
-            self.__additional_cards(player)
-        self.dealer.flip_first_card() # первая карта дилера раскрывается
-        if not self.still_playing:
-            # все игроки перебрали, покажем только 'руку' дилера
+            if player.big_question() == 0: # если закончились деньги, то удаляем игрока
+                self.players.remove(player)
+        if len(self.players) != 0: # если игроков не осталось, то игра заканчивается
+            for player in self.players:
+                self.temporary_rate.append(player.question_rate())
+                print(player)
             print(self.dealer)
-        else:
-            # сдача дополнительных карт дилеру
-            print(self.dealer)
-            self.__additional_cards(self.dealer)
-            if self.dealer.is_busted():
-            # выигрывают все, кто еще остался в игре
-                for player in self.still_playing:
-                    player.win()
-                    self.bank.change_rate_win()
-
+            # сдача дополнительных карт игрокам
+            for player in self.players:
+                self.__additional_cards(player)
+            self.dealer.flip_first_card() # первая карта дилера раскрывается
+            if not self.still_playing:
+                # все игроки перебрали, покажем только 'руку' дилера
+                print(self.dealer)
             else:
-            # сравниваем суммы очков у дилера и у игроков, оставшихся в игре
-                for player in self.still_playing:
-                    if player.total > self.dealer.total:
+                # сдача дополнительных карт дилеру
+                print(self.dealer)
+                self.__additional_cards(self.dealer)
+                if self.dealer.is_busted():
+                # выигрывают все, кто еще остался в игре
+                    for player in self.still_playing:
                         player.win()
-                        self.bank.change_rate_win()
-                    elif player.total < self.dealer.total:
-                        player.lose()
-                        self.bank.change_rate_lose()
-                    else:
-                        player.push()
-                        self.bank.change_rate_push()
+                else:
+                # сравниваем суммы очков у дилера и у игроков, оставшихся в игре
+                    for player in self.still_playing:
+                        if player.total > self.dealer.total:
+                            player.win()
+                        elif player.total < self.dealer.total:
+                            player.lose()
+                        else:
+                            player.push()
+        else:
+            print("Больше игроков нет, игра закончена!!!")
         # удаление всех карт
         for player in self.players:
             player.clear()
@@ -221,9 +199,7 @@ def main():
     number = games.ask_number("Сколько всего игроков? (1 - 7): ", low=1, high=8)
     for i in range(number):
         name = input("Введите имя игрока: ")
-        #rate = input("Введите ставку для игрока: ") # добавилось
         names.append(name)
-        #rates.append(rate) # добавилось
         print()
     game = BJ_Game(names)
     again = None

@@ -12,6 +12,7 @@ class Player(object):
         return rep
 
 
+
 def ask_yes_no(question):
     """Задает вопрос с ответом 'да' или 'нет'"""
     response = None
