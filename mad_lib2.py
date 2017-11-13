@@ -64,7 +64,7 @@ class Application(Frame):
         self.body_part = StringVar()
         self.body_part.set(None)
         body_parts = ["пупок", "большой палец ноги", "продолговатый мозг"]
-        OptionMenu(self, self.body_part, *body_parts, command=self.body_part).grid(row=5, column=1, sticky=W)
+        OptionMenu(self, self.body_part, *body_parts).grid(row=5, column=1, sticky=W)
         # кнопка отсылки данных
         Button(self,
                text = "Получить рассказ",
