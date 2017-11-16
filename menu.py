@@ -159,15 +159,6 @@ class Application(Frame):
         count7 = self.count7.get()
         count8 = self.count8.get()
         count9 = self.count9.get()
-        t_item1 = 0
-        t_item2 = 0
-        t_item3 = 0
-        t_item4 = 0
-        t_item5 = 0
-        t_item6 = 0
-        t_item7 = 0
-        t_item8 = 0
-        t_item9 = 0
         total = 0
         menu = "Ваш счет:"
         if self.item1_choise.get():
