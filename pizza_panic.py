@@ -2,7 +2,6 @@
 # Игрок должен ловить падающую пиццу, пока она не достигла земли
 from livewires import games, color
 import random
-from time import sleep
 
 games.init(screen_width=640, screen_height=480, fps=50)
 
