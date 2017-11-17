@@ -55,7 +55,6 @@ class Pizza(games.Sprite):
 
     def update(self):
         """Проверяет, не коснулась ли нижняя кромка спрайта нижней границы экрана."""
-
         if self.bottom > games.screen.height:
             self.end_game()
             self.destroy()
