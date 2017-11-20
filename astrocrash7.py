@@ -1,11 +1,67 @@
-# Прерванный полет-6
+# Прерванный полет-7
 import math, random
 import random
 from livewires import games
 
 games.init(screen_width=640, screen_height=480, fps=50)
 
-class Asteroid(games.Sprite):
+class Wrapper(games.Sprite):
+    """Огибатель. Спрайт, который, двигаясь, огибает графический экран."""
+    def update(self):
+        """Переносит спрайт на противоположную сторону окна."""
+        if self.top > games.screen.height:
+            self.bottom = 0
+        if self.bottom < 0:
+            self.top = games.screen.height
+        if self.left > games.screen.width:
+            self.right = 0
+        if self.right < 0:
+            self.left = games.screen.width
+
+    def die(self):
+        """Разрушает объект."""
+        self.destroy()
+
+class Collider(Wrapper):
+    """Погибатель. Огибатель, который может сталкиваться с другими объектами и гибнуть."""
+    def update(self):
+        """Проверяет, нет ли спрайтов, визуально перекрывающийся с данным."""
+        super(Collider, self).update()
+        if self.overlapping_sprites:
+            for sprite in self.overlapping_sprites:
+                sprite.die()
+            self.die()
+
+    def die(self):
+        """Разрушает объект со взрывом."""
+        new_explosion = Explosion(x=self.x, y=self.y)
+        games.screen.add(new_explosion)
+        self.destroy()
+
+class Explosion(games.Animation):
+    """Анимированный взрыв."""
+    sound = games.load_sound("explosion.wav")
+    image = [
+        "explotion1.bmp",
+        "explotion2.bmp",
+        "explotion3.bmp",
+        "explotion4.bmp",
+        "explotion5.bmp",
+        "explotion6.bmp",
+        "explotion7.bmp",
+        "explotion8.bmp",
+        "explotion9.bmp"
+    ]
+
+    def __init__(self, x, y):
+        super(Explosion, self).__init__(images=Explosion.images,
+                                        x=x, y=y,
+                                        repeat_interval=4, n_repeats=1,
+                                        is_collideable=False)
+        Explosion.sound.play()
+
+
+class Asteroid(Wrapper):
     """Астероид, прямолинейно движущийся по экрану."""
     SMALL = 1
     MEDIUM = 2
@@ -28,16 +84,6 @@ class Asteroid(games.Sprite):
         )
         self.size = size
 
-    def update(self):
-        """Заставляет астероид обогнуть экран."""
-        if self.top > games.screen.height:
-            self.bottom = 0
-        if self.bottom < 0:
-            self.top = games.screen.height
-        if self.left > games.screen.width:
-            self.right = 0
-        if self.right < 0:
-            self.left = games.screen.width
 
     def die(self):
         """Разрушает астероид."""
@@ -48,9 +94,9 @@ class Asteroid(games.Sprite):
                                         y=self.y,
                                         size=self.size - 1)
                 games.screen.add(new_asteroid)
-        self.destroy()
+        super(Asteroid, self).die()
 
-class Ship(games.Sprite):
+class Ship(Collider):
     """Корабль игрока."""
     image = games.load_image("ship.bmp")
     sound = games.load_sound("thrust.wav")
@@ -76,15 +122,6 @@ class Ship(games.Sprite):
             angle = self.angle * math.pi / 180 # преобразование в радианы
             self.dx += Ship.VELOCITY_STEP * math.sin(angle)
             self.dy += Ship.VELOCITY_STEP * -math.cos(angle)
-        # корабль будет "огибать" экран
-        if self.top > games.screen.height:
-            self.bottom = 0
-        if self.bottom < 0:
-            self.top = games.screen.height
-        if self.left > games.screen.width:
-            self.right = 0
-        if self.right < 0:
-            self.left = games.screen.width
         # если запуск следующей ракеты пока еще не разрешен, вычесть 1 из длины оставшегося итервала ожидания
         if self.missile_wait > 0:
             self.missile_wait -= 1
@@ -98,6 +135,7 @@ class Ship(games.Sprite):
             for sprite in self.overlapping_sprites:
                 sprite.die()
             self.die()
+        super(Ship, self).update()
 
 
     def die(self):
@@ -105,7 +143,7 @@ class Ship(games.Sprite):
         self.destroy()
 
 
-class Missile(games.Sprite):
+class Missile(Collider):
     """Ракета, которую может выпустить космический корабль игрока."""
     image = games.load_image("missile.bmp")
     sound = games.load_sound("missile.wav")
@@ -138,24 +176,21 @@ class Missile(games.Sprite):
         self.lifetime -= 1
         if self.lifetime == 0:
             self.destroy()
-        # ракета будет "огибать" экран
-        if self.top > games.screen.height:
-            self.bottom = 0
-        if self.bottom < 0:
-            self.top = games.screen.height
-        if self.left > games.screen.width:
-            self.right = 0
-        if self.right < 0:
-            self.left = games.screen.width
         # проверка на перекрытие с другими объектами
         if self.overlapping_sprites:
             for sprite in self.overlapping_sprites:
                 sprite.die()
-            self.die()
+            super(Missile, self).update()
 
     def die(self):
         """Разрушает ракету"""
         self.destroy()
+
+
+
+
+
+
 
 
 def main():
